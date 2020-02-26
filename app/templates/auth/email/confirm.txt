@@ -1,0 +1,13 @@
+Dear {{ user.username }},
+
+Welcome to Blogger!
+
+To confirm your account, please click on the link below:
+
+{{ url_for('auth.confirm', token=token, _external=True) }}
+
+Sincerly,
+
+The Blogger Team
+
+Note: Replies to this email are not monitored by the Blogger Team.
