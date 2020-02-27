@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 from flask import current_app
 from flask_login import UserMixin, AnonymousUserMixin
@@ -86,6 +87,20 @@ class User(UserMixin, db.Model):
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     password_hash = db.Column(db.String(128))
     confirmed = db.Column(db.Boolean, default=False)
+
+    # Profile data
+    name = db.Column(db.String(64))
+    location = db.Column(db.String(64))
+    about_me = db.Column(db.Text())
+    member_since = db.Column(db.DateTime(), default = datetime.utcnow)
+    last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
+
+    # To implement last_seen we use a ping method which will
+    # be included in the before_request function in app/auth/views.py
+    def ping(self):
+        self.last_seen = datetime.utcnow()
+        db.session.add(self)
+        db.session.commit()
 
     # Role assignment -> assigns administrator role if the
     # email address matches the one stored in the BLOGGER_ADMIN
