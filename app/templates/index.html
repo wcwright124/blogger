@@ -5,7 +5,9 @@
 
 {% block page_content %}
 <div class="page-header">
-    <h1>Hello, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}Stranger{% endif %}!</h1>
-    <p>Welcome to Blogger! A service that provides instantaneous global public messaging. We totally didn't user that other website's CSS framework to build this.</p>
+    <hgroup>
+        <h1>Hello, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}Stranger{% endif %}. Welcome to Blogger!</h1>
+        <h3>A service that provides instantaneous global public messaging. We totally didn't user that other website's CSS framework to build this.</h3>
+    </hgroup>
 </div>
 {% endblock %}
