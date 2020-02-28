@@ -33,7 +33,7 @@ class EditProfileAdminForm(FlaskForm):
             raise ValidationError('Emaily already registered.')
 
     def validate_username(self, field):
-        if field.dat != self.user.username and \
+        if field.data != self.user.username and \
                 User.query.filter_by(username=field.data).first():
             raise ValidationError('Username already in use.')
 

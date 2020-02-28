@@ -61,7 +61,7 @@ def edit_profile_admin(id):
         user.confirmed = form.confirmed.data
         user.role = Role.query.get(form.role.data)
         user.name = form.name.data
-        user.location = form.location_data
+        user.location = form.location.data
         user.about_me = form.about_me.data
         db.session.add(user)
         db.session.commit()
