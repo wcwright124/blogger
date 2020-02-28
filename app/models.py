@@ -1,3 +1,5 @@
+import hashlib
+
 from datetime import datetime
 from enum import Enum
 from flask import current_app
@@ -189,6 +191,14 @@ class User(UserMixin, db.Model):
 
     def is_administrator(self):
         return self.can(Permission.ADMIN)
+
+    # Stackoverflow style gravatars for users
+    def gravatar(self, size=100, default='identicon', rating='g'):
+        url = 'https://secure.gravatar.com/avatar'
+        hash = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
+        return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
+            url=url, hash=hash, size=size, default=default, rating=rating
+        )
     
 # Anonymous user allows us to perform role verification
 # on current_user without first verifying that the user
