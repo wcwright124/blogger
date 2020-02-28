@@ -5,16 +5,6 @@ from wtforms import ValidationError
 from ..models import Role, User
 
 
-class NameForm(FlaskForm):
-    name = StringField('What is your name?', validators=[DataRequired()])
-    submit = SubmitField('Submit')
-
-class EditProfileForm(FlaskForm):
-    name = StringField('Real name', validators=[Length(0, 64)])
-    location = StringField('Location', validators=[Length(0, 64)])
-    about_me = TextAreaField('About me')
-    submit = SubmitField('Submit')
-
 class EditProfileAdminForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Length(1, 64), Email()])
     username = StringField('Username', validators=[
@@ -46,3 +36,17 @@ class EditProfileAdminForm(FlaskForm):
         if field.dat != self.user.username and \
                 User.query.filter_by(username=field.data).first():
             raise ValidationError('Username already in use.')
+
+class EditProfileForm(FlaskForm):
+    name = StringField('Real name', validators=[Length(0, 64)])
+    location = StringField('Location', validators=[Length(0, 64)])
+    about_me = TextAreaField('About me')
+    submit = SubmitField('Submit')
+
+class NameForm(FlaskForm):
+    name = StringField('What is your name?', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+class PostForm(FlaskForm):
+    body = TextAreaField("What's on your mind?", validators=[DataRequired()])
+    submit = SubmitField("Submit")
