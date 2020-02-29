@@ -257,6 +257,10 @@ class User(UserMixin, db.Model):
         if user.id is None:
             return False
         return self.followers.filter_by(follower_id=user.id).first() is not None
+
+    @property
+    def followed_posts(self):
+        return Post.query.join(Follow, Follow.followed_id == Post.author_id).filter(Follow.follower_id == self.id)
     
 # Anonymous user allows us to perform role verification
 # on current_user without first verifying that the user
