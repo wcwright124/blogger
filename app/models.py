@@ -1,3 +1,4 @@
+import bleach
 import hashlib
 
 from datetime import datetime
@@ -5,6 +6,7 @@ from enum import Enum
 from flask import current_app, request
 from flask_login import UserMixin, AnonymousUserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from markdown import markdown
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db, login_manager
 
@@ -98,6 +100,8 @@ class User(UserMixin, db.Model):
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
     avatar_hash = db.Column(db.String(32))
 
+    posts = db.relationship('Post', backref='author', lazy='dynamic')
+
     # To implement last_seen we use a ping method which will
     # be included in the before_request function in app/auth/views.py
     def ping(self):
@@ -115,7 +119,7 @@ class User(UserMixin, db.Model):
                 self.role = Role.query.filter_by(name='Administrator').first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
-        if self.email is not None and self.gravatar_hash is None:
+        if self.email is not None and self.avatar_hash is None:
             self.avatar_hash = self.gravatar_hash()
 
     @property
@@ -193,6 +197,9 @@ class User(UserMixin, db.Model):
     def can(self, perm):
         return self.role is not None and self.role.has_permission(perm)
 
+    def has_role(self):
+        return self.role is not None
+
     def is_administrator(self):
         return self.can(Permission.ADMIN)
 
@@ -225,3 +232,27 @@ login_manager.anonymous_user = AnonymousUser
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+
+class Post(db.Model):
+    __tablename__ = 'posts'
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.Text)
+    body_html = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+    @staticmethod
+    def on_changed_body(target, value, oldvalue, initiator):
+        allowed_tags = [
+            'a', 'abbr', 'acronym', 'b', 'blockquote', 'code',
+            'em', 'h1', 'h2', 'h3', 'i', 'li', 'ol', 'p', 'pre',
+            'strong', 'ul',
+        ]
+        target.body_html = bleach.linkify(bleach.clean(
+            markdown(value, output_format='html'),
+            tags=allowed_tags,
+            strip=True
+        ))
+
+db.event.listen(Post.body, 'set', Post.on_changed_body)
