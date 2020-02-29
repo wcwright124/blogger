@@ -14,6 +14,7 @@ class Config:
     BLOGGER_ADMIN = os.environ.get('BLOGGER_ADMIN')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     BLOGGER_POSTS_PER_PAGE = 20
+    BLOGGER_FOLLOWERS_PER_PAGE = 50
 
     @staticmethod
     def init_app(app):
