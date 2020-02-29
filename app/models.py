@@ -80,7 +80,13 @@ class Role(db.Model):
             db.session.add(role)
         db.session.commit()
 
-    
+
+ # Followers
+class Follow(db.Model):
+    __tablename__ = 'follows'
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)   
 
 
 class User(UserMixin, db.Model):
@@ -101,6 +107,23 @@ class User(UserMixin, db.Model):
     avatar_hash = db.Column(db.String(32))
 
     posts = db.relationship('Post', backref='author', lazy='dynamic')
+
+    # Followers
+    # Many-many relationship is decomposed as two one-many relationships
+    followed = db.relationship(
+        'Follow',
+        foreign_keys=[Follow.follower_id],
+        backref=db.backref('follower', lazy='joined'),
+        lazy='dynamic',
+        cascade='all, delete-orphan'
+    )
+    followers = db.relationship(
+        'Follow',
+        foreign_keys=[Follow.followed_id],
+        backref=db.backref('followed', lazy='joined'),
+        lazy='dynamic',
+        cascade='all, delete-orphan'
+    )
 
     # To implement last_seen we use a ping method which will
     # be included in the before_request function in app/auth/views.py
@@ -213,6 +236,27 @@ class User(UserMixin, db.Model):
 
     def gravatar_hash(self):
         return hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
+
+    # Functions implementing follower relationship
+    def follow(self, user):
+        if not self.is_following(user):
+            f = Follow(followed=user)
+            self.followed.append(f)
+
+    def unfollow(self, user):
+        f = self.followed.filter_by(followed_id=user.id).first()
+        if f:
+            self.followed.remove(f)
+
+    def is_following(self, user):
+        if user.id is None:
+            return False
+        return self.followed.filter_by(followed_id=user.id).first() is not None
+
+    def is_followed_by(self, user):
+        if user.id is None:
+            return False
+        return self.followers.filter_by(follower_id=user.id).first() is not None
     
 # Anonymous user allows us to perform role verification
 # on current_user without first verifying that the user
@@ -256,3 +300,4 @@ class Post(db.Model):
         ))
 
 db.event.listen(Post.body, 'set', Post.on_changed_body)
+
