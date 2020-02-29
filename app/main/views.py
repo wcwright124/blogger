@@ -109,6 +109,7 @@ def follow(username):
         flash('You already follow {}.'.format(username))
         return redirect(url_for('.user', username=username))
     current_user.follow(user)
+    db.session.commit()
     flash('You are now following {}.'.format(username))
     return redirect(url_for('.user', username=username))
 
@@ -124,6 +125,7 @@ def unfollow(username):
         flash('You are not following {}.'.format(username))
         return redirect(url_for('.user', username=username))
     current_user.unfollow(user)
+    db.session.commit()
     flash('You are no longer following {}.'.format(username))
     return redirect(url_for('.user', username=username))
 
@@ -136,7 +138,7 @@ def followers(username):
     page = request.args.get('page', 1, type=int)
     pagination = user.followers.paginate(
         page,
-        per_page=curent_app.config['BLOGGER_FOLLOWERS_PER_PAGE'],
+        per_page=current_app.config['BLOGGER_FOLLOWERS_PER_PAGE'],
         error_out=False
     )
     follows = [{'user': item.follower, 'timestamp': item.timestamp} for item in pagination.items]
@@ -158,6 +160,6 @@ def followed_by(username):
     )
     follows = [{'user': item.followed, 'timestamp': item.timestamp} for item in pagination.items]
     return render_template('followers.html', user=user, title='Followed by',
-                            endpoint='.followed-by', pagination=pagination,
+                            endpoint='.followed_by', pagination=pagination,
                             follows=follows)
     
