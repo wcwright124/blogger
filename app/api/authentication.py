@@ -32,6 +32,8 @@ def before_request():
             not g.current_user.confirmed:
         return forbidden('Unconfirmed account')
 
+# Prevents clients form being able to authenticate using a previously
+# obtained token instead of an email address + password.
 @api.route('/tokens/', methods=['POST'])
 def get_token():
     if g.current_user.is_anonymous or g.token_used:
